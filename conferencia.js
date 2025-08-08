@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
         corpoTabela.innerHTML += `
             <tr>
                 <td>${reg.total_produzido_dia}</td>
-                <td>${reg.perda_rl}</td>
-                <td>${reg.perda_rs}</td>
+                <td>${reg.perda_tipo_a}</td>
+                <td>${reg.perda_tipo_b}</td>
                 <td>${reg.conferente_nome}</td>
                 <td>${dataRegistro}</td>
                 <td>
@@ -108,8 +108,8 @@ corpoTabela.addEventListener('click', (event) => {
         const dadosConferencia = {
             data_conferencia: inputData.value,
             total_produzido_dia: document.getElementById('total-produzido').value,
-            perda_rl: document.getElementById('perda-rl').value,
-            perda_rs: document.getElementById('perda-rs').value,
+            perda_tipo_a: document.getElementById('perda-tipo-a').value,
+            perda_tipo_b: document.getElementById('perda-tipo-b').value,
             conferente_id: document.getElementById('conferente').value,
         };
 

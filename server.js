@@ -97,7 +97,7 @@ app.post('/api/clientes', async (req, res) => {
 app.post('/api/colaboradores', async (req, res) => {
     try {
         const { nome_colaborador, funcao } = req.body;
-        if (!nome_colaborador || !funcao) {
+        if (!nome_colaborador || !funcao) {2
             return res.status(400).json({ message: 'Nome e função são obrigatórios.' });
         }
         const sql = 'INSERT INTO Colaboradores (nome_colaborador, funcao) VALUES (?, ?)';
@@ -148,54 +148,56 @@ app.delete('/api/colaboradores/:id', async (req, res) => {
         // --- ENDPOINTS DE CONFERÊNCIA ---
 
         // POST /api/conferencia - Registra uma nova conferência diária
-        app.post('/api/conferencia', async (req, res) => {
-            const { data_conferencia, total_produzido_dia, perda_rl, perda_rs, conferente_id } = req.body;
-            
-            // Validação simples no backend
-            if (!data_conferencia || !total_produzido_dia || !conferente_id) {
-                return res.status(400).json({ message: 'Dados incompletos para registro de conferência.' });
-            }
+       
+     app.post('/api/conferencia', async (req, res) => {
+    // MUDANÇA AQUI
+     const { data_conferencia, total_produzido_dia, perda_tipo_a, perda_tipo_b, conferente_id } = req.body;
 
-            const sql = 'INSERT INTO Conferencia (data_conferencia, total_produzido_dia, perda_rl, perda_rs, conferente_id) VALUES (?, ?, ?, ?, ?)';
-            
-            try {
-                await connection.query(sql, [data_conferencia, total_produzido_dia, perda_rl || 0, perda_rs || 0, conferente_id]);
-                res.status(201).json({ message: 'Conferência registrada com sucesso!' });
-            } catch (error) {
-                console.error('Erro ao registrar conferência:', error);
-                res.status(500).json({ message: 'Erro interno no servidor ao registrar conferência.' });
-            }
+     if (!data_conferencia || !total_produzido_dia || !conferente_id) {
+        return res.status(400).json({ message: 'Dados incompletos...' });
+    }
+
+    // MUDANÇA AQUI
+    const sql = 'INSERT INTO Conferencia (data_conferencia, total_produzido_dia, perda_tipo_a, perda_tipo_b, conferente_id) VALUES (?, ?, ?, ?, ?)';
+
+    try {
+        // MUDANÇA AQUI
+        await connection.query(sql, [data_conferencia, total_produzido_dia, perda_tipo_a || 0, perda_tipo_b || 0, conferente_id]);
+        res.status(201).json({ message: 'Conferência registrada com sucesso!' });
+    } catch (error) { /* ... */ }
+});
             // Adicione este bloco no seu arquivo API/server.js
 
 // DELETE /api/conferencia/:id - Deleta um registro de conferência
               app.delete('/api/conferencia/:id', async (req, res) => {
-               const { id } = req.params;
-               await connection.query('DELETE FROM Conferencia WHERE id = ?', [id]);
-                res.json({ message: 'Registro de conferência deletado com sucesso!' });
-        });
+                try {
+                  const { id } = req.params;
+                  await connection.query('DELETE FROM Conferencia WHERE id = ?', [id]);
+                  res.json({ message: 'Registro de conferência deletado com sucesso!' });
+                } catch (error) {
+                  console.error("Erro ao deletar conferência:", error);
+                  res.status(500).json({ message: 'Erro interno no servidor.' });
+                }
               });
 
         // GET /api/conferencia - Busca conferências por data
         // Adicione este bloco no seu arquivo API/server.js
 
 // GET /api/producao?data=... - Busca produções de uma data específica
-app.get('/api/producao', async (req, res) => {
-    const { data } = req.query;
-    if (!data) {
-        return res.status(400).json({ message: 'A data é obrigatória.' });
-    }
+// GET /api/conferencia - Busca conferências por data
+app.get('/api/conferencia', async (req, res) => {
+    // ...
     const sql = `
         SELECT 
-            p.id, p.hora_inicio, p.hora_fim, p.quantidade_produzida,
-            c.nome_cliente, co.nome_colaborador as nome_operador
-        FROM Producao p
-        JOIN Clientes c ON p.cliente_id = c.id
-        JOIN Colaboradores co ON p.operador_id = co.id
-        WHERE p.data_inicio = ?
-        ORDER BY p.hora_inicio DESC
+            conf.id, conf.data_conferencia, conf.total_produzido_dia,
+            conf.perda_tipo_a, conf.perda_tipo_b, -- MUDANÇA AQUI
+            col.nome_colaborador as conferente_nome, conf.data_registro
+        FROM Conferencia conf
+        JOIN Colaboradores col ON conf.conferente_id = col.id
+        WHERE conf.data_conferencia = ?
+        ORDER BY conf.data_registro DESC
     `;
-    const [rows] = await connection.query(sql, [data]);
-    res.json(rows);
+    // ...
 });
 
 // DELETE /api/producao/:id - Deleta um registro de produção
